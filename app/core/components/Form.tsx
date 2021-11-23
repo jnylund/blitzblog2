@@ -3,8 +3,9 @@ import { Form as FinalForm, FormProps as FinalFormProps } from "react-final-form
 import { z } from "zod"
 import { validateZodSchema } from "blitz"
 export { FORM_ERROR } from "final-form"
+import arrayMutators from "final-form-arrays"
 
-export interface FormProps<S extends z.ZodType<any, any>>
+export interface FormProps<S extends z.ZodType<any, any>, T = z.infer<S>>
   extends Omit<PropsWithoutRef<JSX.IntrinsicElements["form"]>, "onSubmit"> {
   /** All your form fields */
   children?: ReactNode
@@ -13,6 +14,7 @@ export interface FormProps<S extends z.ZodType<any, any>>
   schema?: S
   onSubmit: FinalFormProps<z.infer<S>>["onSubmit"]
   initialValues?: FinalFormProps<z.infer<S>>["initialValues"]
+  mutators?: FinalFormProps<T>["mutators"]
 }
 
 export function Form<S extends z.ZodType<any, any>>({
@@ -21,6 +23,7 @@ export function Form<S extends z.ZodType<any, any>>({
   schema,
   initialValues,
   onSubmit,
+  mutators,
   ...props
 }: FormProps<S>) {
   return (
@@ -28,7 +31,15 @@ export function Form<S extends z.ZodType<any, any>>({
       initialValues={initialValues}
       validate={validateZodSchema(schema)}
       onSubmit={onSubmit}
-      render={({ handleSubmit, submitting, submitError }) => (
+      mutators={mutators}
+      render={({
+        handleSubmit,
+        submitting,
+        submitError,
+        form: {
+          mutators: { push, pop },
+        },
+      }) => (
         <form onSubmit={handleSubmit} className="form" {...props}>
           {/* Form fields supplied as children are rendered here */}
           {children}
